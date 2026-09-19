@@ -1,0 +1,197 @@
+_superDestroy 1.0
+A Max for Live audio effect
+A port and expansion of Destroy FX's "Polarizer"
+
+================================================================
+
+1. WHAT THIS IS
+
+_superDestroy is a Max for Live audio effect built on the DSP core of the
+open-source Polarizer plugin by Destroy FX (Sophia Poirier & Tom Murphy
+7), originally released as a VST. The core mechanic -- periodically
+polarizing one sample, with an optional waveform fold on top -- is ported
+faithfully, sample-accurately, from the original source.
+
+On top of that faithful core, this device adds real new capability that
+did not exist in the original: a Width parameter that extends a single
+polarized sample into a sustained run of polarized samples, a continuous
+fold amount instead of a binary on/off, an Asymmetry control that can
+reintroduce a real quirk of the original plugin's behavior at silence,
+an independent Skew control for asymmetric gain shaping, a live output
+oscilloscope, extended parameter ranges reaching past what the original
+could do, and a built-in safety limiter.
+
+If you set every parameter to its original-equivalent value (see section
+4), this device should sound essentially identical to the original.
+Turned up, it goes considerably further.
+
+License note: this is a derivative of GPL-2.0 licensed code. If you share
+this device, keep it GPL-2.0-compatible and credit Destroy FX, Sophia
+Poirier, and Tom Murphy 7.
+
+================================================================
+
+2. INSTALLING / LOADING THE DEVICE
+
+Drag the provided .amxd file onto a track in Live. It should load as a
+normal, fully editable Max for Live device with six controls visible --
+Leap, Width, Strength, Implosion, Asymmetry, and Skew -- a small grid of
+live readouts (one per control) underneath, and a live oscilloscope
+showing the final output waveform.
+
+================================================================
+
+3. THE CONTROLS
+
+A note on precision: every control here accepts fractional values, not
+just whole numbers -- either by typing an exact number (e.g. 9.37) or by
+dragging smoothly with the mouse. This makes an audible difference; the
+original plugin's Leap control was effectively whole-numbers-only, so
+smooth fractional interpolation across every control is genuinely new
+territory this device offers over the original. Worth experimenting with.
+
+LEAP (samples)
+How many samples the effect skips between each polarized sample. At Leap
+= 3, one sample in every 4 gets polarized; at higher values the polarized
+samples get sparser. Low Leap values (a handful of samples) produce a
+buzzy, pitched, almost resonant character, since the polarized samples
+repeat fast enough to fuse into a tone. High Leap values (hundreds to
+thousands of samples) space them out into individually audible clicks or
+a slow rhythmic gate. Range: 0-4800, default 1.
+
+WIDTH (samples, hold)
+How many consecutive samples get polarized each cycle, instead of just
+one. At Width = 1 (the default), behavior matches the original plugin
+exactly -- a single sample is polarized per cycle. Raise it and that
+single polarized sample becomes a sustained run of polarized samples
+instead, which is often the difference between "inaudible" and
+"obviously audible" at high Leap settings, since one sample alone is very
+hard to hear in isolation. Width's actual audible effect is always capped
+to Leap's current value internally, no matter what the control itself
+shows -- watch the width(eff) readout to see the current value at any
+moment.
+
+STRENGTH (%)
+How strongly each polarized sample is affected. This is the original
+plugin's own name for this parameter (their full internal name was
+"polarization strength"). This control's own 0-100% position maps to a
+scalar from +2 down to -2:
+
+  0%   -> scalar +2   double gain on the polarized sample (new territory)
+  25%  -> scalar +1   no effect -- matches the original's 0%
+  50%  -> scalar  0   mute the polarized sample
+  75%  -> scalar -1   full inversion -- matches the original's 100%
+  100% -> scalar -2   double inverted gain (new territory)
+
+The str% debug readout is built to match the original plugin's own
+on-screen display exactly -- their GUI shows this same underlying value
+multiplied by 10 (confirmed directly in their source code), so their
+display reads 0% to 1000% rather than 0% to 100%. Our str% readout
+applies that identical convention: it reads 0 at this control's 25%
+position (matching the original's own no-effect point) and 1000 at 75%
+(matching the original's full inversion) -- the exact numbers you'd see
+on the original plugin's own display at the equivalent settings.
+
+IMPLOSION (%)
+Continuously blends between the dry sample and Destroy FX's original
+"implode" fold (a wavefolding effect that reflects the signal around +/-1
+or +/-0.5 depending on sign). Range -100% to 200%:
+
+  0%        no fold -- matches the original plugin's "Implode: OFF"
+  100%      full fold -- matches the original plugin's "Implode: ON" exactly
+
+Everything outside 0-100% is entirely new territory, not present in the
+original plugin in any form:
+
+  negative  pushes transients outward / amplifies rather than folding
+            them in. To hear this clearly, try roughly -50% to -100%,
+            with Leap low and Strength away from its 50% mute point.
+  >100%     the fold overshoots into more chaotic waveshaping.
+
+ASYMMETRY (%)
+Controls a single, specific edge case: what happens at the exact instant
+a sample crosses zero. At 100%, this device reproduces a real quirk
+found in the original plugin's own behavior at that same instant,
+confirmed by direct comparison against the original VST. That quirk
+introduces a small DC offset, adding a small amount of audible signal to
+otherwise-silent passages -- which can be genuinely useful, for instance
+driving a following synth or effect into unexpected resonance. At 0%
+(the default here), this device's own new addition, a deliberate fix,
+keeps that same moment clean instead -- silence stays silence. Settings
+beyond 100%, or negative, push further into new, unexplored ground that
+did not exist in the original. Watch the dcBiasL readout to see the
+real, measured effect on the signal at any setting.
+
+SKEW (%)
+An independent gain applied to the positive and negative halves of the
+waveform separately -- entirely its own mechanism, unrelated to
+Asymmetry. Positive values boost the positive half of the waveform and
+reduce the negative half; negative values do the reverse. At 0% (the
+default), no effect at all. At +/-100%, one half is fully silenced while
+the other is doubled. Push further, up to +/-200%, and the silenced half
+comes back inverted, growing back up to a full, same-magnitude flip of
+its original sign by +/-200%. Watch skewedL to see the real effect.
+
+Skew has no counterpart in the original plugin -- leave it at its 0%
+default to avoid introducing this new behavior.
+
+================================================================
+
+4. MATCHING THE ORIGINAL PLUGIN EXACTLY
+
+To reproduce the original Polarizer's sound with no extensions engaged:
+
+  - Width = 1
+  - Strength anywhere from 25-75% (this is the original's own full
+    range, mapped onto this control -- see the table in section 3)
+  - Implosion = 0% (implode off) or 100% (implode on) -- nothing in
+    between, since the original's fold was strictly binary
+  - Asymmetry = 100% (this matches the original's own actual behavior at
+    this edge case -- see section 3)
+  - Skew = 0% (the default; this control has no original counterpart --
+    see section 3)
+  - Leap matches directly; the original's range was 1-81, which is the
+    low end of this device's much wider range
+
+================================================================
+
+5. THE LIVE READOUTS AND OSCILLOSCOPE
+
+Underneath each of the six main controls sits one small, muted, read-only
+number display -- purely informational, none of them affect the sound.
+Each one was chosen to show that specific control's real effect, not
+just repeat the control's own setting:
+
+  freq(Hz)    Leap's actual resulting frequency
+  width(eff)  Width's real, in-use value after the Leap-based ceiling
+  str%        Strength's scalar, in the original plugin's own 0-1000 scale
+  clipAmtL    how much the safety limiter is currently removing (should
+              read 0 almost always)
+  dcBiasL     Asymmetry's real, measured effect on the signal
+  skewedL     Skew's real effect on the signal
+
+To the right of the controls, a live oscilloscope shows the actual final
+output waveform, after every stage of processing -- polarize, fold,
+Skew, Asymmetry, and the safety limiter -- so you can watch what a
+setting is really doing to the signal shape in real time, not just hear
+it.
+
+================================================================
+
+6. A NOTE ON THE PARAMETER RANGES
+
+Several controls here (Strength, Implosion, Asymmetry, Skew) extend
+beyond a simple 0-100%. This isn't arbitrary -- each one's range is built
+symmetrically around that control's own "meaningful core" (the span
+where its behavior actually maps back to something in the original
+plugin, or to its own natural 0-effect point), with equal room on both
+sides to explore past it. The exact numbers differ because each
+control's own core is a different width -- Strength and Implosion's
+core is narrower than Asymmetry's, for instance -- but the underlying
+logic is the same throughout: matching room to push past "normal" in
+either direction, not an arbitrary stretch.
+
+================================================================
+
+_superDestroy is a port of Destroy FX's Polarizer, released under
+GPL-2.0. Original algorithm and plugin by Sophia Poirier and Tom Murphy 7.
