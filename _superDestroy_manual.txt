@@ -174,7 +174,8 @@ To the right of the controls, a live oscilloscope shows the actual final
 output waveform, after every stage of processing -- polarize, fold,
 Skew, Asymmetry, and the safety limiter -- so you can watch what a
 setting is really doing to the signal shape in real time, not just hear
-it.
+it. Beneath the scope, a seventh readout, finalL, shows that same final
+output as a precise number rather than just a waveform shape.
 
 ================================================================
 

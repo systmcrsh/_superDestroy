@@ -49,6 +49,13 @@ See [`_superDestroy_manual.txt`](./_superDestroy_manual.txt) in this repo
 for the full parameter reference, how to exactly match the original
 plugin's sound, and a guide to the live readouts.
 
+## Source
+
+In compliance with the GPL-2.0 license this project inherits from the
+original Polarizer, the modified source is included in this repo:
+[`_superDestroy_1.0_source.json`](./_superDestroy_1.0_source.json) is
+the complete Max patcher (rename to `.maxpat` to open directly in Max).
+
 ## Credits & license
 
 `_superDestroy` is a derivative of Destroy FX's **Polarizer**, originally
